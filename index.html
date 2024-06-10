@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/style.css">
+  <title>Static Template</title>
+</head>
+<body>
+  <div class="container-fluid">
+    <h1 class="text-center my-4">Planning</h1>
+    <div class="row">
+      <!-- Menu à gauche -->
+      <div class="col-md-3">
+        <div class="list-group">
+          <button type="button" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#simpleModal">Bouton 1</button>
+          <button type="button" class="list-group-item list-group-item-action">Bouton 2</button>
+          <button type="button" class="list-group-item list-group-item-action">Bouton 3</button>
+        </div>
+      </div>
+      <!-- Graphique à droite -->
+      <div class="col-md-9">
+        <div class="p-3 border">
+          <canvas id="myChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Simple Modal -->
+  <div class="modal fade" id="simpleModal" tabindex="-1" aria-labelledby="simpleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable mx-auto">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="simpleModalLabel">Simple Modal</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Ceci est une modal simple.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/jquery.min.js"></script>
+  <script src="js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

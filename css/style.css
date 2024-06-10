@@ -1,0 +1,17 @@
+body {
+  padding: 20px;
+  background-color: #ecf0f1
+}
+
+.list-group {
+  margin-top: 20px;
+}
+
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+.border {
+  margin-top: 20px;
+}
