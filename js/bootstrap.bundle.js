@@ -20,7 +20,6 @@
    * Constants
    */
 
-  const elementMap = new Map();
   const Data = {
     set(element, key, instance) {
       if (!elementMap.has(element)) {
