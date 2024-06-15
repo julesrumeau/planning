@@ -1,0 +1,92 @@
+{
+ 
+    "date_debut": "2024-01-01",
+    "config_personnel": [
+        {
+            "lundi_semaine": "2024-01-01",
+            "homme": 14,
+            "heure_par_jour": 8
+        },
+        {
+            "lundi_semaine": "2024-01-08",
+            "homme": 15,
+            "heure_par_jour": 8
+        },
+        {
+            "lundi_semaine": "2024-01-15",
+            "homme": 14,
+            "heure_par_jour": 8
+        },
+        {
+            "lundi_semaine": "2024-01-22",
+            "homme": 5,
+            "heure_par_jour": 7
+        },
+        {
+            "lundi_semaine": "2024-07-29",
+            "homme": 5,
+            "heure_par_jour": 7
+        }
+    ],
+
+    "chantiers": [
+        {
+            "nom": "Louhans",
+            "client": "ALDI",
+            "date_debut": "2024-01-15",
+            "nbr_heure": 3000,
+            "est_vendu": true,
+            "config_personnel": [
+                {
+                    "date_debut_config": "",
+                    "date_fin_config": "2024-01-03",
+                    "nbr_homme": 6
+                },
+                {
+                    "date_debut_config": "2024-01-04",
+                    "date_fin_config": "",
+                    "nbr_homme": 7
+                }
+            ]
+        },
+        {
+            "nom": "Craons",
+            "client": "ALDI",
+            "date_debut": "2024-01-17",
+            "nbr_heure": 60,
+            "est_vendu": true,
+            "config_personnel": [
+                {
+                    "date_debut_config": "",
+                    "date_fin_config": "2024-01-27",
+                    "nbr_homme": 3
+                },
+                {
+                    "date_debut_config": "2024-01-28",
+                    "date_fin_config": "",
+                    "nbr_homme": 7
+                }
+            ]
+        },
+        {
+            "nom": "test",
+            "client": "ALDI",
+            "date_debut": "2024-01-01",
+            "nbr_heure": 400,
+            "est_vendu": false,
+            "config_personnel": [
+                {
+                    "date_debut_config": "",
+                    "date_fin_config": "2024-01-05",
+                    "nbr_homme": 15
+                },
+                {
+                    "date_debut_config": "2024-01-28",
+                    "date_fin_config": "",
+                    "nbr_homme": 7
+                }
+            ]
+        }
+    ]
+
+}
