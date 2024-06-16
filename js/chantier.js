@@ -1,46 +1,38 @@
 document.addEventListener("DOMContentLoaded", function() {
   loadDataChantier();
+  loadDataPersonnel();
+  calculatedata();
 });
 
 // Fonction pour ajouter une ligne de chantier au tableau
 function ajouterLigneChantier(nom = '', client = '', dateDebut = '', nombreHeures = '', estVendu = '', periodes = []) {
   var newRow = `
-     <tr>
-        <td><input type="text" class="form-control" value="${nom}" placeholder="Nom"></td>
-        <td><input type="text" class="form-control" value="${client}" placeholder="Client"></td>
-        <td><input type="date" class="form-control" value="${dateDebut}" placeholder="Date de début"></td>
-        <td><input type="number" class="form-control" value="${nombreHeures}" placeholder="Nombre d'heures"></td>
-        <td><input type="checkbox" class="form-check-input" ${estVendu ? 'checked' : ''}></td>
-        <td>
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Date de début</th>
-                <th>Date de fin</th>
-                <th>Hommes max</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody class="periode-body">
-              ${genererLignesPeriodes(periodes)}
-            </tbody>
-          </table>    
-          <button class="btn btn-secondary btn-sm" onclick="ajouterPeriode(this)">Ajouter période</button>
-        </td>
-        <td><button type="button" class="btn btn-danger" onclick="supprimerLigneChantier(this)">Supprimer</button></td>
-      </tr>
+    <tr class="chantier-row">
+      <td><input type="text" class="form-control" value="${nom}" placeholder="Nom"></td>
+      <td><input type="text" class="form-control" value="${client}" placeholder="Client"></td>
+      <td><input type="date" class="form-control" value="${dateDebut}" placeholder="Date de début"></td>
+      <td><input type="number" class="form-control" value="${nombreHeures}" placeholder="Nombre d'heures"></td>
+      <td><input type="checkbox" class="form-check-input" ${estVendu ? 'checked' : 'checked'}></td>
+      <td><button type="button" class="btn btn-danger" onclick="supprimerLigneChantier(this)">Supprimer</button></td>
+    </tr>
+    ${genererLignesPeriodes(periodes)}
+    <tr>
+      <td colspan="6" class="text-center">
+        <button class="btn btn-secondary btn-sm" onclick="ajouterPeriode(this)">Ajouter période</button>
+      </td>
+    </tr>
   `;
   document.getElementById("tableBodyChantier").insertAdjacentHTML("beforeend", newRow);
 }
+
 
 // Fonction pour générer les lignes de périodes pour une ligne de chantier
 function genererLignesPeriodes(periodes) {
   var periodesHTML = '';
   for (var i = 0; i < periodes.length; i++) {
     periodesHTML += `
-      <tr>
-        <td><input type="date" class="form-control" value="${periodes[i].dateDebut}" placeholder="Date de début"></td>
-        <td><input type="date" class="form-control" value="${periodes[i].dateFin}" placeholder="Date de fin"></td>
+      <tr class="periode-row">
+        <td style="padding-left: 60px;"><input type="date" class="form-control" value="${periodes[i].dateDebut}" placeholder="Date de début"></td>
         <td><input type="number" class="form-control" value="${periodes[i].hommesMax}" placeholder="Hommes max"></td>
         <td><button type="button" class="btn btn-danger btn-sm" onclick="supprimerPeriode(this)">Supprimer</button></td>
       </tr>
@@ -48,63 +40,70 @@ function genererLignesPeriodes(periodes) {
   }
   return periodesHTML;
 }
+function ajouterPeriode(button) { // TODOdefault dd periode
+  // Trouver la ligne de chantier parente
+  var chantierRow = button.closest("tr").previousElementSibling;
 
-// Fonction pour ajouter une période à une ligne de chantier
-function ajouterPeriode(button) {
-  var periodeBody = button.parentElement.querySelector('.periode-body');
+  // Vérifier que la ligne précédente est bien une ligne de chantier
+  while (chantierRow && !chantierRow.classList.contains('chantier-row')) {
+    chantierRow = chantierRow.previousElementSibling;
+  }
+
+  if (!chantierRow) {
+    console.error("Ligne du chantier non trouvée.");
+    return;
+  }
+
   var newPeriode = `
-    <tr>
-      <td><input type="date" class="form-control" placeholder="Date de début"></td>
-      <td><input type="date" class="form-control" placeholder="Date de fin"></td>
+    <tr class="periode-row">
+      <td style="padding-left: 60px;"><input type="date" class="form-control" placeholder="Date de début"></td>
       <td><input type="number" class="form-control" placeholder="Hommes max"></td>
       <td><button type="button" class="btn btn-danger btn-sm" onclick="supprimerPeriode(this)">Supprimer</button></td>
     </tr>
   `;
-  periodeBody.insertAdjacentHTML('beforeend', newPeriode);
+
+  // Insérer la nouvelle période directement après la ligne de chantier
+  chantierRow.insertAdjacentHTML('afterend', newPeriode);
 }
 
-// Fonction pour supprimer une période d'une ligne de chantier
-function supprimerPeriode(button) {
-  button.closest('tr').remove(); // Supprime la ligne de période du DOM
-}
 
 // Fonction pour valider les données saisies dans le tableau et les sauvegarder
 function saveDataChantier() {
   var tableRows = document.getElementById("tableBodyChantier").getElementsByTagName("tr");
   var data = [];
-  console.log(tableRows);
+  var chantierIndex = -1;
 
-  for (var i = 0; i < tableRows.length - 1; i++) {
-    var cells = tableRows[i].querySelectorAll("input"); // Sélectionne tous les input dans la ligne actuelle
-    console.log(i);
-    console.log(cells);
-
-    var rowData = {
-      nom: cells[0].value,
-      client: cells[1].value,
-      dateDebut: cells[2].value,
-      nombreHeures: cells[3].value,
-      estVendu: cells[4].checked,
-      periodes: []
-    };
-
-    // Récupérer les périodes pour cette ligne de chantier
-    var periodeRows = tableRows[i].querySelectorAll('.periode-body tr');
-    periodeRows.forEach(function(row) {
-      var periodeCells = row.getElementsByTagName("input");
+  for (var i = 0; i < tableRows.length; i++) {
+    if (tableRows[i].classList.contains('chantier-row')) {
+      chantierIndex++;
+      var cells = tableRows[i].querySelectorAll("input");
+      var rowData = {
+        nom: cells[0].value,
+        client: cells[1].value,
+        dateDebut: cells[2].value,
+        nombreHeures: cells[3].value,
+        estVendu: cells[4].checked,
+        periodes: []
+      };
+      data.push(rowData);
+    } else if (tableRows[i].classList.contains('periode-row')) {
+      var periodeCells = tableRows[i].getElementsByTagName("input");
       var periodeData = {
         dateDebut: periodeCells[0].value,
-        dateFin: periodeCells[1].value,
-        hommesMax: periodeCells[2].value
+        hommesMax: periodeCells[1].value
       };
-      rowData.periodes.push(periodeData);
-    });
-
-    data.push(rowData);
+      data[chantierIndex].periodes.push(periodeData);
+    }
   }
 
   console.log("Données saisies :", data);
   localStorage.setItem("dataChantier", JSON.stringify(data));
+}
+
+function supprimerPeriode(button) {
+  var row = button.closest("tr"); // Trouver la ligne de période parente
+  row.remove(); // Supprimer la ligne du tableau
+  saveDataChantier();
 }
 
 // Fonction pour supprimer une ligne de chantier
@@ -123,19 +122,37 @@ function supprimerLigneChantierParNom(nom) {
 
   // Parcourir toutes les lignes du tableau
   for (var i = 0; i < rows.length; i++) {
-    var currentRow = rows[i];
-    var cells = currentRow.getElementsByTagName("td");
+    var cells = rows[i].getElementsByTagName("td");
 
-    // Vérifier si le nom dans cette ligne correspond au nom donné
-    if (cells[0].querySelector("input").value === nom) { // Supposons que le nom soit dans la première cellule
-      currentRow.remove(); // Supprimer la ligne du tableau
+    // Vérifier si le premier élément de la ligne est un input
+    var firstInput = cells[0].querySelector("input");
+    if (firstInput && firstInput.value === nom) {
 
-      // Supprimer les données correspondantes dans le localStorage en utilisant le nom comme clé
-      supprimerDonneesLocalStorageParNom(nom);
+      // Supprimer la ligne du tableau
+      rows[i].remove(); // Supprimer la ligne du tableau
+      var isFinish = false;
+
+      if (rows[i].getElementsByTagName("td")[0].querySelector("button")) {
+        rows[i].remove();
+        isFinish = true;
+      }
+      while (!isFinish && rows[i].getElementsByTagName("td")[0].querySelector("input").type === "date") {
+        rows[i].remove();
+        if (rows[i].getElementsByTagName("td")[0].querySelector("button")) {
+          rows[i].remove();
+          isFinish = true;
+        }
+      }
+
       break; // Sortir de la boucle une fois que la ligne est supprimée
     }
   }
+
+  // Enregistrer les données mises à jour dans localStorage
+  saveDataChantier();
 }
+
+
 
 // Fonction pour supprimer les données d'une ligne de chantier dans le localStorage par son nom
 function supprimerDonneesLocalStorageParNom(nom) {
@@ -282,17 +299,52 @@ function supprimerDonneesLocalStorageParSemaineDebut(semaineDebut) {
 
 
 
+function getDaysBetween(startDate, endDate) {
+  const days = [];
+  let currentDate = new Date(startDate);
+  const semaineFin = new Date(endDate);
+  
+  while (currentDate <= semaineFin) {
+      days.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  return days;
+}
 
+function getAllDaysInPeriods(periods) {
+  let allDays = [];
+  
+  periods.forEach(period => {
+      const { semaineDebut, semaineFin } = period;
+      allDays = allDays.concat(getDaysBetween(semaineDebut, semaineFin));
+  });
+  
+  // Convertir les dates en chaînes de caractères
+  allDays = allDays.map(date => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0'); // Mois de 0 à 11, donc ajouter 1
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+  });
+  
+  return allDays;
+}
 
+function calculatedata() {
 
+  var listePeriodes = JSON.parse(localStorage.getItem("dataPersonnel"));
+
+  const allDays = getAllDaysInPeriods(listePeriodes);
+
+  console.log(allDays);
+
+}
 
 
 //TODO on load et  save  on appel ça 
 
 
-function listJour(){
-  console.log()
-}
 const ctx = document.getElementById('myChart');
 
 new Chart(ctx, {

@@ -18,7 +18,15 @@
           <button type="button" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#tableModalChantier">Saisir des chantiers</button>
           <button type="button" class="list-group-item list-group-item-action" data-bs-toggle="modal" data-bs-target="#personnelModal">Saisir des personnels</button>
         </div>
+      
+        <div>
+          <!-- <a href="chantier.html" class="btn btn-primary">chantier</a> -->
+          <a href="levage.html" class="btn btn-primary">levage</a>
+          <!-- Ajoutez un autre lien pour une éventuelle page 3 -->
+          <!-- <a href="page3.html" class="btn btn-primary">Page N°3</a> -->
+        </div>
       </div>
+
       <!-- Graphique à droite -->
       <div class="col-md-9">
         <div class="p-3 border">
@@ -45,7 +53,6 @@
                 <th scope="col">Date de début</th>
                 <th scope="col">Nombre d'heure</th>
                 <th scope="col">Est vendu</th>
-                <th scope="col">Personnels</th>
                 <th scope="col">Action</th>
               </tr>
             </thead>
@@ -97,9 +104,21 @@
     </div>
   </div>
 
+
+<!-- Bas de page pour la navigation -->
+
+  <div class="container-fluid fixed-bottom bg-light py-3">
+    <div class="row justify-content-center">
+      <div class="col-auto">
+        <button type="button" class="btn btn-outline-primary mx-2" onclick="afficherPage('chantiers')">Chantiers</button>
+        <button type="button" class="btn btn-outline-primary mx-2" onclick="afficherPage('personnels')">Personnels</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/chantier.js"></script>
 </body>
 </html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Date Range Calculator</title>
+</head>
+<body>
+  <button onclick="calculateAndDisplayDateRange()">Calculer la plage de dates</button>
+  <div id="dateResults"></div>
+
+  <script>
+
+    function getDatesBetween(startDate, endDate) {
+      let dates = [];
+      let currentDate = new Date(startDate);
+
+      while (currentDate <= endDate) {
+        dates.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      return dates;
+    }
+    function calculateDateRange(date) {
+      // Convertit la chaîne de date en objet Date si nécessaire
+      if (!(date instanceof Date)) {
+        date = new Date(date);
+      }
+
+      // Récupère la date du jour
+      let currentDate = new Date(date);
+
+      // Calcule les dates deux jours avant et dix jours après la date actuelle
+      let twoDaysBefore = new Date(currentDate.setDate(currentDate.getDate() - 60));
+      let tenDaysAfter = new Date(currentDate.setDate(currentDate.getDate() + 300));
+
+      let datesArray = getDatesBetween(twoDaysBefore, tenDaysAfter);
+
+      return datesArray;
+    }
+
+    function calculateAndDisplayDateRange() {
+      let currentDate = new Date(); // Date actuelle
+      let dateRange = calculateDateRange(currentDate);
+
+      let resultsDiv = document.getElementById('dateResults');
+      resultsDiv.innerHTML = '<p>Dates entre deux jours avant et dix jours après :</p>';
+
+      // Crée une liste non ordonnée pour afficher les dates
+      let ul = document.createElement('ul');
+      dateRange.forEach(date => {
+        let li = document.createElement('li');
+        li.textContent = date.toLocaleDateString();
+        ul.appendChild(li);
+      });
+      resultsDiv.appendChild(ul);
+    }
+  </script>
+</body>
+</html>
