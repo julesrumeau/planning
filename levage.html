@@ -6,56 +6,63 @@
   <title>Date Range Calculator</title>
 </head>
 <body>
-  <button onclick="calculateAndDisplayDateRange()">Calculer la plage de dates</button>
-  <div id="dateResults"></div>
+  <div id="table-container"></div>
 
-  <script>
-
-    function getDatesBetween(startDate, endDate) {
-      let dates = [];
-      let currentDate = new Date(startDate);
-
-      while (currentDate <= endDate) {
-        dates.push(new Date(currentDate));
-        currentDate.setDate(currentDate.getDate() + 1);
-      }
-
-      return dates;
-    }
-    function calculateDateRange(date) {
-      // Convertit la chaîne de date en objet Date si nécessaire
-      if (!(date instanceof Date)) {
-        date = new Date(date);
-      }
-
-      // Récupère la date du jour
-      let currentDate = new Date(date);
-
-      // Calcule les dates deux jours avant et dix jours après la date actuelle
-      let twoDaysBefore = new Date(currentDate.setDate(currentDate.getDate() - 60));
-      let tenDaysAfter = new Date(currentDate.setDate(currentDate.getDate() + 300));
-
-      let datesArray = getDatesBetween(twoDaysBefore, tenDaysAfter);
-
-      return datesArray;
-    }
-
-    function calculateAndDisplayDateRange() {
-      let currentDate = new Date(); // Date actuelle
-      let dateRange = calculateDateRange(currentDate);
-
-      let resultsDiv = document.getElementById('dateResults');
-      resultsDiv.innerHTML = '<p>Dates entre deux jours avant et dix jours après :</p>';
-
-      // Crée une liste non ordonnée pour afficher les dates
-      let ul = document.createElement('ul');
-      dateRange.forEach(date => {
-        let li = document.createElement('li');
-        li.textContent = date.toLocaleDateString();
-        ul.appendChild(li);
-      });
-      resultsDiv.appendChild(ul);
-    }
-  </script>
+  <body>
+    <table>
+        <thead>
+            <tr>
+                <th>Mois</th>
+                <th colspan="52">Numéro de Semaine</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <!-- Cellules pour les mois -->
+                <td>Janvier</td>
+                <td>Février</td>
+                <td>Mars</td>
+                <td>Avril</td>
+                <td>Mai</td>
+                <td>Juin</td>
+                <td>Juillet</td>
+                <td>Août</td>
+                <td>Septembre</td>
+                <td>Octobre</td>
+                <td>Novembre</td>
+                <td>Décembre</td>
+            </tr>
+            <tr>
+                <!-- Cellules pour les numéros de semaine -->
+                <td colspan="52">
+                    <!-- Exemple pour Janvier, avec 5 semaines -->
+                    <table style="width: 100%;">
+                        <tr>
+                            <td>1</td>
+                            <td>2</td>
+                            <td>3</td>
+                            <td>4</td>
+                            <td>5</td>
+                        </tr>
+                    </table>
+                    <!-- Répétez pour chaque mois, ajustant le nombre de colonnes selon le nombre de semaines -->
+                    <table style="width: 100%;">
+                        <tr>
+                            <td>6</td>
+                            <td>7</td>
+                            <td>8</td>
+                            <td>9</td>
+                            <td>10</td>
+                            <!-- Ajoutez d'autres numéros de semaine selon le nombre réel de semaines -->
+                        </tr>
+                    </table>
+                    <!-- Répétez pour tous les mois -->
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
+  <script src="js/levage.js"></script>
 </body>
 </html>

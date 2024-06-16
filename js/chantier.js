@@ -5,14 +5,17 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 // Fonction pour ajouter une ligne de chantier au tableau
-function ajouterLigneChantier(nom = '', client = '', dateDebut = '', nombreHeures = '', estVendu = '', periodes = []) {
+function ajouterLigneChantier(nom = '', client = '', dateDebut = '', nombreHeuresAtelier = '', estVendu = '', nombreSemaineLevage1 = '', nombreSemaineLevage2 = '', nombreSemaineLevage3 = '', periodes = []) {
   var newRow = `
     <tr class="chantier-row">
       <td><input type="text" class="form-control" value="${nom}" placeholder="Nom"></td>
       <td><input type="text" class="form-control" value="${client}" placeholder="Client"></td>
       <td><input type="date" class="form-control" value="${dateDebut}" placeholder="Date de début"></td>
-      <td><input type="number" class="form-control" value="${nombreHeures}" placeholder="Nombre d'heures"></td>
+      <td><input type="number" class="form-control" value="${nombreHeuresAtelier}" placeholder="Nombre d'heure atelier"></td>
       <td><input type="checkbox" class="form-check-input" ${estVendu ? 'checked' : 'checked'}></td>
+      <td><input type="number" class="form-control" value="${nombreSemaineLevage1}" placeholder="Nombre semaine levage (1)"></td>
+      <td><input type="number" class="form-control" value="${nombreSemaineLevage2}" placeholder="Nombre semaine levage (2)"></td>
+      <td><input type="number" class="form-control" value="${nombreSemaineLevage3}" placeholder="Nombre semaine levage (3)"></td>
       <td><button type="button" class="btn btn-danger" onclick="supprimerLigneChantier(this)">Supprimer</button></td>
     </tr>
     ${genererLignesPeriodes(periodes)}
@@ -81,8 +84,11 @@ function saveDataChantier() {
         nom: cells[0].value,
         client: cells[1].value,
         dateDebut: cells[2].value,
-        nombreHeures: cells[3].value,
+        nombreHeuresAtelier: cells[3].value,
         estVendu: cells[4].checked,
+        nombreSemaineLevage1: cells[5].value,
+        nombreSemaineLevage2: cells[6].value,
+        nombreSemaineLevage3: cells[7].value,
         periodes: []
       };
       data.push(rowData);
@@ -175,7 +181,7 @@ function loadDataChantier() {
     ajouterLigneChantier(); // Ajoute une ligne vide par défaut s'il n'y a pas de données
   } else {
     data.forEach(function(chantier) {
-      ajouterLigneChantier(chantier.nom, chantier.client, chantier.dateDebut, chantier.nombreHeures, chantier.estVendu, chantier.periodes);
+      ajouterLigneChantier(chantier.nom, chantier.client, chantier.dateDebut, chantier.nombreHeuresAtelier, chantier.estVendu, chantier.nombreSemaineLevage1, chantier.nombreSemaineLevage2, chantier.nombreSemaineLevage3, chantier.periodes);
     });
   }
 }
