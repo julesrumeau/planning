@@ -107,7 +107,15 @@ function generateTable(weeks) {
   for (const monthKey in weeksByMonth) {
     if (weeksByMonth.hasOwnProperty(monthKey)) {
       const [year, month] = monthKey.split('-');
-      html += `<td colspan="3" style="border: 1px solid black; padding: 8px; text-align: center;">${getMonthName(parseInt(month))} ${year}</td>`;
+      var colspan = weeksByMonth[monthKey].length;
+
+      const lastWeek = weeksByMonth[monthKey][weeksByMonth[monthKey].length - 1];
+
+      if (month == 11 && lastWeek.weekNumber == 1) {
+        colspan -= 1;
+      }
+
+      html += `<td colspan="${colspan}" style="border: 1px solid black; padding: 8px; text-align: center;">${getMonthName(parseInt(month))} ${year}</td>`;
     }
   }
   html += '</tr>';
@@ -117,7 +125,11 @@ function generateTable(weeks) {
   for (const monthKey in weeksByMonth) {
     if (weeksByMonth.hasOwnProperty(monthKey)) {
       const monthWeeks = weeksByMonth[monthKey];
+      
       monthWeeks.forEach(week => {
+        if (week.weekNumber == 1 && week.startMonth == 11) {
+          return;
+        }
         html += `<td style="border: 1px solid black; padding: 8px; text-align: center;">${week.weekNumber}</td>`;
       });
     }
