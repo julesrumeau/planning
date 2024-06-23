@@ -16,6 +16,9 @@ canvas {
   margin-top: 20px;
 }
 
+.ligneVide {
+  height: 50px; /* Remplacez par la hauteur souhaitée */
+}
 .modal-dialog {
   max-width: 90%; 
 }
