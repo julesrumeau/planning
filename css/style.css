@@ -7,9 +7,44 @@ body {
   margin-top: 20px;
 }
 
+#tableauLeveur td {
+  border: 1px solid black;
+  padding: 8px;
+  text-align: center;
+}
+
+:root {
+  --bg-color: lightblue; /* Valeur par défaut */
+}
+
+/* CSS pour colorer une case spécifique en utilisant la variable */
+.case-colored {
+  background-color: var(--bg-color); /* Utilisation de la variable */
+  color: black; /* Couleur du texte (optionnel) */
+}
+
+.vendu {
+  background-color: rgb(190, 255, 186); /* Couleur du texte (optionnel) */
+}
 canvas {
   max-width: 100%;
   height: auto;
+}
+
+/* Appliquer le fond hachuré à un élément spécifique */
+.hachure {
+  /* Taille du texte centré avec bordure */
+  background: linear-gradient(-45deg,
+  #000000 10%, transparent 10%, transparent 20%,  /* Bande noire */
+  #000000 20%, #000000 20%, #000000 30%,           /* Bande noire */
+  #000000 30%, transparent 30%, transparent 40%,  /* Bande noire */
+  #000000 40%, #000000 40%, #000000 50%,           /* Bande noire */
+  #000000 50%, transparent 50%, transparent 60%,  /* Bande noire */
+  #000000 60%, #000000 60%, #000000 70%,           /* Bande noire */
+  #000000 70%, transparent 70%, transparent 80%,  /* Bande noire */
+  #000000 80%, #000000 80%, #000000 90%,           /* Bande noire */
+  #000000 90%, transparent 90%, transparent 100%  /* Bande noire */
+);
 }
 
 .border {

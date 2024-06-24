@@ -1,9 +1,13 @@
 
 document.addEventListener("DOMContentLoaded", function() {
-  generateTable();
   initModalLeveur();
   initModalChantier();
 });
+
+
+window.semaineDebutGlobal = null;
+window.nbrsemaine = null;
+window.todaykey = null;
 
 // Function to calculate the date range from today
 function calculateDateRange(date) {
@@ -108,6 +112,9 @@ function generateTable() {
   // Créer un objet pour regrouper les semaines par mois
   let weeksByMonth = {};
 
+  window.semaineDebutGlobal = weeks[0]["startYear"] + "-" + weeks[0]["weekNumber"]
+  window.nbrsemaine = weeks.length
+
   // Organiser les semaines par mois dans l'objet weeksByMonth
   weeks.forEach(week => {
     const key = `${week.startYear}-${week.startMonth}`;
@@ -117,12 +124,31 @@ function generateTable() {
     weeksByMonth[key].push(week);
   });
 
+
+  const day = today.getDate();
+  const month = today.getMonth() + 1; // Les mois sont indexés à partir de 0, donc on ajoute 1
+  const year = today.getFullYear();
+  const weekNumber = getWeekNumber(today); // Assume que getWeekNumber est une fonction qui retourne le numéro de semaine
+  window.todaykey = `${year}-${weekNumber}`;
+
+  
+  // Formater en jour/mois/année
+  const formattedDate = `${day}/${month}/${year}`;
+
+
   // Générer le tableau HTML avec les mois et les semaines regroupées par colonnes
   let html = '<table id="tableauLeveur" style="border-collapse: collapse;"><tbody>';
 
+  html += '<tr>';
+  html += `<td>${formattedDate}</td>`;
+  html += `<td colspan="1000"><h1>C-MOB LEVAGE ${year}</h1></td>`;
+  html += '<tr class="ligneVide"></tr>';
+
+  html += '</tr>';
+
   // Ligne pour les noms des mois
   html += '<tr>';
-  html += `<td colspan="8" style="border: 1px solid black; padding: 8px; text-align: center;"></td>`;
+  html += `<td colspan="9"></td>`;
 
   for (const monthKey in weeksByMonth) {
     if (weeksByMonth.hasOwnProperty(monthKey)) {
@@ -135,7 +161,7 @@ function generateTable() {
         colspan -= 1;
       }
 
-      html += `<td colspan="${colspan}" style="border: 1px solid black; padding: 8px; text-align: center;">${getMonthName(parseInt(month))} ${year}</td>`;
+      html += `<td colspan="${colspan}">${getMonthName(parseInt(month))} ${year}</td>`;
     }
   }
   html += '</tr>';
@@ -143,29 +169,28 @@ function generateTable() {
   // Ligne pour les numéros de semaine
   html += '<tr>';
 
-  html += `<td style="border: 1px solid black; padding: 8px; text-align: center;">Levateur</td>`;
-  html += `<td style="border: 1px solid black; padding: 8px; text-align: center;">Action</td>`;
-  html += `<td style="border: 1px solid black; padding: 8px; text-align: center;">N°</td>`;
-  html += `<td style="border: 1px solid black; padding: 8px; text-align: center;">Chantier</td>`;
-  html += `<td style="border: 1px solid black; padding: 8px; text-align: center;">Dep</td>`;
-  html += `<td style="border: 1px solid black; padding: 8px; text-align: center;">MOA</td>`;
-  html += `<td style="border: 1px solid black; padding: 8px; text-align: center;">MOE</td>`;
-  html += `<td style="border: 1px solid black; padding: 8px; text-align: center;">Sem</td>`;
+  html += `<td>Levateur</td>`;
+  html += `<td colspan="2">Action</td>`;
+  html += `<td>N°</td>`;
+  html += `<td>Chantier</td>`;
+  html += `<td>Dep</td>`;
+  html += `<td>MOA</td>`;
+  html += `<td>MOE</td>`;
+  html += `<td>Sem</td>`;
 
   for (const monthKey in weeksByMonth) {
     if (weeksByMonth.hasOwnProperty(monthKey)) {
       const monthWeeks = weeksByMonth[monthKey];
-      
       monthWeeks.forEach(week => {
         if (week.weekNumber == 1 && week.startMonth == 11) {
           return;
         }
-        html += `<td style="border: 1px solid black; padding: 8px; text-align: center;">${week.weekNumber}</td>`;
+        html += `<td>${week.weekNumber}</td>`;
       });
     }
   }
 
-  html += `<td style="border: 1px solid black; padding: 8px; text-align: center;">Action</td>`;
+  html += `<td>Action</td>`;
 
   html += '</tr>';
 
@@ -173,8 +198,67 @@ function generateTable() {
 
   html += '<tr class="ligneVide"></tr>';
   html += '<tr><td><button type="button" class="btn btn-primary" id="openmodalleveur">Ajouter un Leveur</button></td></tr>';
+
+
   html += '</tbody></table>';
+
+
   return html;
+}
+
+
+
+
+function deleteLeveur(button) {
+  var row = button.closest("tr");
+
+  if (row) {
+    // Essayer de trouver le premier td dans la ligne actuelle
+    var firstTd = row.querySelector("td:first-child");
+
+    // Si aucun premier td n'est trouvé ou s'il est vide, vérifier la ligne précédente
+    while ((!firstTd || !firstTd.textContent.trim()) && row.previousElementSibling) {
+      row = row.previousElementSibling;
+      firstTd = row.querySelector("td:first-child");
+    }
+
+    // Afficher la valeur du premier td trouvé
+    if (firstTd && firstTd.textContent.trim()) {
+      console.log("Premier td: " + firstTd.textContent.trim()); // Afficher la valeur du premier td
+    } else {
+      console.log("Aucun premier <td> trouvé dans la ligne courante ou les lignes précédentes.");
+    }
+
+  } else {
+    console.log("Aucun élément <tr> parent trouvé.");
+  }
+
+
+  var currentLeveur = firstTd.textContent.trim();
+
+
+  
+  var dataLeveur = JSON.parse(localStorage.getItem("dataLeveur")) || [];
+
+  
+  var newDataLeveur = [];
+  
+  
+  for (var i = 0; i < dataLeveur.length; i++) {
+
+    if (dataLeveur[i] != null && dataLeveur[i][0] != currentLeveur) {
+      newDataLeveur[i] = [];
+      newDataLeveur[i] = dataLeveur[i];
+    }
+
+  }
+
+
+  localStorage.setItem("dataLeveur", JSON.stringify(newDataLeveur));
+  window.location.reload();
+
+
+
 }
 
 // Fonction pour obtenir le nom du mois à partir du numéro de mois (0-11)
@@ -197,7 +281,11 @@ const tableHtml = generateTable(weeks);
 // Inject the generated table into the div with ID "table-container"
 document.getElementById('table-container').innerHTML = tableHtml;
 
+setcolortable();
 
+
+dataLeveur = [];
+localStorage.setItem("dataLeveur", JSON.stringify(dataLeveur));
 
 
 
@@ -207,28 +295,208 @@ document.getElementById('table-container').innerHTML = tableHtml;
 
 function defLevateur() {
   var dataLeveur = JSON.parse(localStorage.getItem("dataLeveur")) || [];
-  console.log(dataLeveur);
+  var dataChantier = JSON.parse(localStorage.getItem("dataChantier")) || [];
+
+  var indexedDataChantier = {};
+  var keyDebut = null;
+  var keyDebutFin = null;
+
+
+
+  dataChantier.forEach(obj => {
+      indexedDataChantier[obj.nom] = obj;
+  });
+
+
+  
 
   var html = "";
 
+  var chantiers = null;
   dataLeveur.forEach((levateur, index) => {
+
+    if (levateur == null) {
+      return;
+
+    }
+      var rowspanValue = (levateur[1] && Array.isArray(levateur[1])) ? levateur[1].length : 1;
+
       html += '<tr class="ligneVide"></tr>';
       html += `<tr>
-                  <td style="border: 1px solid black; padding: 8px; text-align: center;">${levateur[0]}</td>
-                  <td><button type="button" class="btn btn-primary openmodalchantier" data-leveur="${levateur[0]}">Ajouter un Chantier</button></td>`;
+                  <td rowspan="${rowspanValue}">${levateur[0]}</td>
+                  <td rowspan="${rowspanValue}"><button type="button" class="btn btn-primary openmodalchantier" data-leveur="${levateur[0]}">Ajouter un Chantier</button></td>
+                  <td rowspan="${rowspanValue}"><button type="button" class="btn btn-danger" onclick="deleteLeveur(this)">Supprimer le Leveur</button></td>`;
 
-      levateur.forEach((chantier) => {
-        
-        html += `<td style="border: 1px solid black; padding: 8px; text-align: center;">${chantier}</td>`;
 
-      });
+      chantiers = levateur[1];
+      if (typeof chantiers != 'undefined') {
+
+        for (var i = 0; i < chantiers.length; i++) {
+
+          if (chantiers[i] != null) {
+
+            var semainedebut = new Date(indexedDataChantier[chantiers[i]]["dateDebutLevage"]);
+            var numeroSemaine = getWeekNumber(semainedebut);
+            var currentAnne = indexedDataChantier[chantiers[i]]["dateDebutLevage"].substring(0, 4);
+            var keyDebut = currentAnne + "-" + numeroSemaine;
+            
+            let indexDernierTiret = window.semaineDebutGlobal.lastIndexOf("-");
+            var anneDebut = window.semaineDebutGlobal.substring(0, 4);
+            let numeroSemaineDebut = window.semaineDebutGlobal.substring(indexDernierTiret + 1);
+            numeroSemaineDebut = parseInt(numeroSemaineDebut, 10);
+
+
+            html += `<td></td>`;
+            html += `<td>${chantiers[i]}</td>`;
+            html += `<td>${indexedDataChantier[chantiers[i]]["dep"]}</td>`;
+            html += `<td>${indexedDataChantier[chantiers[i]]["moa"]}</td>`;
+            html += `<td>${indexedDataChantier[chantiers[i]]["moe"]}</td>`;
+
+            if (indexedDataChantier[chantiers[i]]["estVendu"]) {
+              html += `<td class="vendu">${numeroSemaine}</td>`;
+            } else {
+              html += `<td>${numeroSemaine}</td>`;
+            }
+
+            var nombreSemaineLevage =  indexedDataChantier[chantiers[i]]["nombreSemaineLevage"];
+            nombreSemaineLevage = parseInt(nombreSemaineLevage, 10);
+            var dureelevage =  numeroSemaine + nombreSemaineLevage;
+            keyDebutFin = anneDebut + "-" + dureelevage;
+
+            window.nbrsemaine
+            var isperiodevalide = false;
+            var ishachure = true;
+            for (var j = 0; j < window.nbrsemaine - 1; j++) {
+              
+              currentKey = anneDebut + "-" + numeroSemaineDebut;
+              
+              numeroSemaineDebut += 1;
+              
+              if (currentKey == keyDebut) {
+                isperiodevalide = true;
+              } 
+              if (currentKey == keyDebutFin) {
+                isperiodevalide = false;
+              }
+
+              if (currentKey == window.todaykey) {
+                  ishachure = false;
+              }
+
+
+
+              if (isperiodevalide) {
+                if (ishachure) {
+                  html += `<td class="case-colored-${levateur[0]} hachure"></td>`;
+                } else {
+                  html += `<td class="case-colored-${levateur[0]}"></td>`;
+                }
+
+              } else {
+                html += `<td></td>`;
+              }
+
+            }
+
+            html += `<td><button type="button" class="btn btn-danger" onclick="retirerChantier(this)">Retirer</button></td>`;
+            
+            html += "</tr>";
+
+          };
+        }
+      } else {
+        html += "</tr>";
+      }
+
+
+
+
 
       
-      html += "</tr>";
   });
 
   return html;
 }
+
+
+function retirerChantier(button) {
+  // Trouver la ligne (tr) parente de ce bouton
+  var row = button.closest("tr");
+
+  if (row) {
+    // Essayer de trouver le premier td dans la ligne actuelle
+    var firstTd = row.querySelector("td:first-child");
+    var fourthTd = row.querySelector("td:nth-child(2)");
+    
+    if (fourthTd && fourthTd.textContent.trim() == "Ajouter un Chantier") {
+      fourthTd = row.querySelector("td:nth-child(5)");
+    }
+
+
+    // Si aucun premier td n'est trouvé ou s'il est vide, vérifier la ligne précédente
+    while ((!firstTd || !firstTd.textContent.trim()) && row.previousElementSibling) {
+      row = row.previousElementSibling;
+      firstTd = row.querySelector("td:first-child");
+    }
+
+    // Afficher la valeur du premier td trouvé
+    if (firstTd && firstTd.textContent.trim()) {
+      console.log("Premier td: " + firstTd.textContent.trim()); // Afficher la valeur du premier td
+    } else {
+      console.log("Aucun premier <td> trouvé dans la ligne courante ou les lignes précédentes.");
+    }
+
+    // Afficher la valeur du quatrième td de la ligne courante
+    if (fourthTd && fourthTd.textContent.trim()) {
+      console.log("Quatrième td: " + fourthTd.textContent.trim()); // Afficher la valeur du quatrième td
+    } else {
+      console.log("Aucun quatrième <td> trouvé dans la ligne courante.");
+    }
+  } else {
+    console.log("Aucun élément <tr> parent trouvé.");
+  }
+
+
+  var currentLeveur = firstTd.textContent.trim();
+  var currentChantier = fourthTd.textContent.trim();
+
+  var dataLeveur = JSON.parse(localStorage.getItem("dataLeveur")) || [];
+
+  
+  var newDataLeveur = [];
+  
+  
+  for (var i = 0; i < dataLeveur.length; i++) {
+
+    if (dataLeveur[i] != null) {
+      newDataLeveur[i] = [];
+      newDataLeveur[i][0] = dataLeveur[i][0];
+      if (!newDataLeveur[i][1]) {
+        newDataLeveur[i][1] = [];
+      }
+
+      if (typeof dataLeveur[i][1] != 'undefined') {
+        for (var j = 0; j < dataLeveur[i][1].length; j++) {
+
+          if (dataLeveur[i][1][j] != currentChantier || dataLeveur[i][0] != currentLeveur) {
+          
+            newDataLeveur[i][1].push(dataLeveur[i][1][j]);
+          }
+
+        } 
+      }
+    }
+
+  }
+
+
+  localStorage.setItem("dataLeveur", JSON.stringify(newDataLeveur));
+  window.location.reload();
+
+}
+
+
+
 
 
 
@@ -241,7 +509,7 @@ function ajouterLeveur() {
   dataLeveur.push(currentleveur);
 
   localStorage.setItem("dataLeveur", JSON.stringify(dataLeveur));
-  generateTable();
+  window.location.reload();
 }
 
 function ajouterChantier(leveur, chantier) {
@@ -249,6 +517,9 @@ function ajouterChantier(leveur, chantier) {
 
   // Parcourir les leveurs
   dataLeveur.forEach(l => {
+    if (l == null) {
+      return;
+    }
       if (l[0] === leveur) {
           // Si le levageur a déjà une liste de chantiers, ajouter à cette liste
           // Sinon, créer une nouvelle liste de chantiers
@@ -261,6 +532,8 @@ function ajouterChantier(leveur, chantier) {
 
   // Sauvegarder les données mises à jour dans le localStorage
   localStorage.setItem("dataLeveur", JSON.stringify(dataLeveur));
+  window.location.reload();
+
 }
 
 
@@ -346,3 +619,57 @@ function showModalWithChoices() {
   // Afficher la modale
   modal.style.display = "block";
 }
+
+function getWeekNumber(date) {
+  // Copier la date pour ne pas la modifier
+  date = new Date(date);
+  
+  // Règle ISO 8601 pour déterminer la semaine
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + 4 - (date.getDay() || 7));
+  var yearStart = new Date(date.getFullYear(), 0, 1);
+  var weekNumber = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+  
+  return weekNumber;
+}
+
+function stringToColor(str) {
+
+
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  var color = Math.floor(Math.abs((Math.sin(hash) * 10000) % 1 * 16777216)).toString(16);
+  return  '#' + Array(6 - color.length + 1).join('0') + color;
+
+}
+
+
+
+
+
+function setcolortable() {
+  
+  var dataLeveur = JSON.parse(localStorage.getItem("dataLeveur")) || [];
+  
+  
+  dataLeveur.forEach(levateur => {
+    if (levateur == null) {
+      return;
+    }
+    let elements = document.querySelectorAll(`.case-colored-${levateur[0]}`);
+
+    elements.forEach(element => {
+        element.style.backgroundColor = stringToColor(levateur[0]);
+    });
+
+    if (elements.length === 0) {
+        console.log(`Aucun élément avec la classe case-colored-${levateur[0]} n'a été trouvé.`);
+    }
+  });
+  
+
+} 
+
