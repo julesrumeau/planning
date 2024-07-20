@@ -193,14 +193,16 @@ function generateTable() {
   html += `<td>Action</td>`;
 
   html += '</tr>';
-
+  
   html += defLevateur();
 
-  html += '<tr><td><button type="button" style="margin-top: 100px;" class="btn btn-primary" id="openmodalleveur">Ajouter un Leveur</button></td></tr>';
+  html += '<tr class="ligneVide"></tr>';
 
+  html += '<tr><td><button type="button" class="btn btn-primary" id="openmodalleveur">Ajouter un Leveur</button></td></tr>';
+
+  html += '<tr class="ligneVide"></tr>';
 
   html += '</tbody></table>';
-
 
   return html;
 }
@@ -313,7 +315,7 @@ function defLevateur() {
       return;
 
     }
-      var rowspanValue = (levateur[1] && Array.isArray(levateur[1])) ? levateur[1].length : 1;
+      var rowspanValue = (levateur[1] && Array.isArray(levateur[1]) && levateur[1].length != 0) ? levateur[1].length : 1;
 
       html += '<tr class="ligneVide"></tr>';
       html += `<tr>
