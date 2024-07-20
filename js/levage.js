@@ -196,8 +196,7 @@ function generateTable() {
 
   html += defLevateur();
 
-  html += '<tr class="ligneVide"></tr>';
-  html += '<tr><td><button type="button" class="btn btn-primary" id="openmodalleveur">Ajouter un Leveur</button></td></tr>';
+  html += '<tr><td><button type="button" style="margin-top: 100px;" class="btn btn-primary" id="openmodalleveur">Ajouter un Leveur</button></td></tr>';
 
 
   html += '</tbody></table>';
@@ -324,7 +323,7 @@ function defLevateur() {
 
 
       chantiers = levateur[1];
-      if (typeof chantiers != 'undefined') {
+      if (typeof chantiers != 'undefined' && chantiers.length != 0) {
 
         for (var i = 0; i < chantiers.length; i++) {
 
@@ -355,8 +354,15 @@ function defLevateur() {
 
             var nombreSemaineLevage =  indexedDataChantier[chantiers[i]]["nombreSemaineLevage"];
             nombreSemaineLevage = parseInt(nombreSemaineLevage, 10);
-            var dureelevage =  (numeroSemaine + nombreSemaineLevage);
+            var dureelevage =  (numeroSemaine + nombreSemaineLevage) % 52;
+
+            //nulle mais osef ça arrivera jamais
             var anneDebutLevage = indexedDataChantier[chantiers[i]]["dateDebutLevage"].substring(0, 4);
+            if (dureelevage < numeroSemaine) { // si on a changé d'années, oui condition est vraiment pas ouf
+              anneDebutLevage = (parseInt(anneDebutLevage) + 1).toString();
+            }
+
+
             keyDebutFin = anneDebutLevage + "-" + dureelevage;
 
             window.nbrsemaine
@@ -404,12 +410,6 @@ function defLevateur() {
       } else {
         html += "</tr>";
       }
-
-
-
-
-
-      
   });
 
   return html;
@@ -529,7 +529,6 @@ function getAllKeySemainePersonnel() {
       lastKey = currentKey;
     } 
   });
-  console.log(res);
 
   
   return res;
