@@ -141,7 +141,7 @@ function generateTable() {
 
   html += '<tr>';
   html += `<td>${formattedDate}</td>`;
-  html += `<td colspan="1000"><h1>C-MOB LEVAGE ${year}</h1></td>`;
+  html += `<td colspan="1000"><h1>LEVAGE ${year}</h1></td>`;
   html += '<tr class="ligneVide"></tr>';
 
   html += '</tr>';
@@ -185,7 +185,7 @@ function generateTable() {
         if (week.weekNumber == 1 && week.startMonth == 11) {
           return;
         }
-        html += `<td>${week.weekNumber}</td>`;
+        html += `<td class="taillefix">${week.weekNumber}</td>`;
       });
     }
   }
@@ -263,7 +263,7 @@ function deleteLeveur(button) {
 
 // Fonction pour obtenir le nom du mois à partir du numéro de mois (0-11)
 function getMonthName(monthNumber) {
-  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
   return months[monthNumber];
 }
 
@@ -282,11 +282,6 @@ const tableHtml = generateTable(weeks);
 document.getElementById('table-container').innerHTML = tableHtml;
 
 setcolortable();
-
-
-dataLeveur = [];
-localStorage.setItem("dataLeveur", JSON.stringify(dataLeveur));
-
 
 
 
@@ -308,7 +303,7 @@ function defLevateur() {
   });
 
 
-  
+  const keyPersonnel = getAllKeySemainePersonnel();
 
   var html = "";
 
@@ -324,8 +319,8 @@ function defLevateur() {
       html += '<tr class="ligneVide"></tr>';
       html += `<tr>
                   <td rowspan="${rowspanValue}">${levateur[0]}</td>
-                  <td rowspan="${rowspanValue}"><button type="button" class="btn btn-primary openmodalchantier" data-leveur="${levateur[0]}">Ajouter un Chantier</button></td>
-                  <td rowspan="${rowspanValue}"><button type="button" class="btn btn-danger" onclick="deleteLeveur(this)">Supprimer le Leveur</button></td>`;
+                  <td rowspan="${rowspanValue}"><button type="button" id="ajouterChantier" class="btn btn-primary openmodalchantier" data-leveur="${levateur[0]}"><i class="fa fa-plus"></i></button></td>
+                  <td rowspan="${rowspanValue}"><button type="button" class="btn btn-danger" onclick="deleteLeveur(this)"><i class="fa fa-trash"></i></button></td>`;
 
 
       chantiers = levateur[1];
@@ -360,45 +355,47 @@ function defLevateur() {
 
             var nombreSemaineLevage =  indexedDataChantier[chantiers[i]]["nombreSemaineLevage"];
             nombreSemaineLevage = parseInt(nombreSemaineLevage, 10);
-            var dureelevage =  numeroSemaine + nombreSemaineLevage;
-            keyDebutFin = anneDebut + "-" + dureelevage;
+            var dureelevage =  (numeroSemaine + nombreSemaineLevage);
+            var anneDebutLevage = indexedDataChantier[chantiers[i]]["dateDebutLevage"].substring(0, 4);
+            keyDebutFin = anneDebutLevage + "-" + dureelevage;
 
             window.nbrsemaine
-            var isperiodevalide = false;
-            var ishachure = true;
+            var coloredClass = '';
+            var hachureClass = '';
+            var isBeforeToday = true;
+
             for (var j = 0; j < window.nbrsemaine - 1; j++) {
               
-              currentKey = anneDebut + "-" + numeroSemaineDebut;
-              
-              numeroSemaineDebut += 1;
-              
-              if (currentKey == keyDebut) {
-                isperiodevalide = true;
-              } 
-              if (currentKey == keyDebutFin) {
-                isperiodevalide = false;
+              if (numeroSemaineDebut % 52 == 1) {
+                anneDebut = (parseInt(anneDebut) + 1).toString();
               }
+              
+              currentKey = anneDebut + "-" + numeroSemaineDebut;
+
+              numeroSemaineDebut = numeroSemaineDebut % 52;
+              numeroSemaineDebut += 1;
 
               if (currentKey == window.todaykey) {
-                  ishachure = false;
+                isBeforeToday = false;
               }
 
-
-
-              if (isperiodevalide) {
-                if (ishachure) {
-                  html += `<td class="case-colored-${levateur[0]} hachure"></td>`;
-                } else {
-                  html += `<td class="case-colored-${levateur[0]}"></td>`;
-                }
-
-              } else {
-                html += `<td></td>`;
+              if (currentKey == keyDebut) {
+                coloredClass =  `case-colored-${levateur[0]}`;
+                hachureClass = isBeforeToday ? 'hachure' : '';
+              } 
+              if (currentKey == keyDebutFin) {
+                coloredClass = '';
               }
+              if (currentKey == window.todaykey) {
+                hachureClass = '';
+              }
+              
+              var petitPointClass = keyPersonnel.includes(currentKey) ? '' : 'dots-background';
 
+              html += `<td id="${currentKey}"class="${coloredClass} ${hachureClass} ${petitPointClass}"></td>`;
             }
 
-            html += `<td><button type="button" class="btn btn-danger" onclick="retirerChantier(this)">Retirer</button></td>`;
+            html += `<td><button type="button" id="retierChantier" class="btn btn-danger" onclick="retirerChantier(this)">Retirer</button></td>`;
             
             html += "</tr>";
 
@@ -427,8 +424,9 @@ function retirerChantier(button) {
     // Essayer de trouver le premier td dans la ligne actuelle
     var firstTd = row.querySelector("td:first-child");
     var fourthTd = row.querySelector("td:nth-child(2)");
-    
-    if (fourthTd && fourthTd.textContent.trim() == "Ajouter un Chantier") {
+    var buttonInCell = fourthTd.querySelector("#ajouterChantier");
+
+    if (buttonInCell) {
       fourthTd = row.querySelector("td:nth-child(5)");
     }
 
@@ -495,8 +493,48 @@ function retirerChantier(button) {
 
 }
 
+function getKeyYearAndWeek(dateStr) {
+  // Convertir la chaîne en objet Date
+  const date = new Date(dateStr);
+  
+  // Récupérer l'année
+  const year = date.getFullYear();
+  
+  // Calculer le numéro de la semaine
+  const firstDayOfYear = new Date(year, 0, 1);
+  const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+  
+  // Récupérer le jour de la semaine pour le premier jour de l'année (0 = Dimanche, 6 = Samedi)
+  const firstDayOfWeek = firstDayOfYear.getDay() || 7;
 
+  // Calculer le numéro de la semaine
+  const weekNumber = Math.ceil((pastDaysOfYear + firstDayOfWeek) / 7);
+  
+  // Retourner la concaténation de l'année et du numéro de la semaine
+  return `${year}-${weekNumber}`;
+}
 
+function getAllKeySemainePersonnel() {
+  
+  const allDays = calculatejours();
+
+  //pas opti mais flemme
+  var currentKey = "";
+  var lastKey = "";
+  var res = [];
+  allDays.forEach(day => {
+    currentKey = getKeyYearAndWeek(day);
+    if (currentKey !== lastKey) {
+      res.push(currentKey);
+      lastKey = currentKey;
+    } 
+  });
+  console.log(res);
+
+  
+  return res;
+
+}
 
 
 
@@ -673,3 +711,49 @@ function setcolortable() {
 
 } 
 
+
+
+
+//code dupliqué mais flemme
+
+function getDaysBetween(startDate, endDate) {
+  const days = [];
+  let currentDate = new Date(startDate);
+  const semaineFin = new Date(endDate);
+  
+  while (currentDate <= semaineFin) {
+      days.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+  }
+  
+  return days;
+}
+
+function getAllDaysInPeriods(periods) {
+  let allDays = [];
+  
+  periods.forEach(period => {
+      const { semaineDebut, semaineFin } = period;
+      allDays = allDays.concat(getDaysBetween(semaineDebut, semaineFin));
+  });
+  
+  // Convertir les dates en chaînes de caractères
+  allDays = allDays.map(date => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0'); // Mois de 0 à 11, donc ajouter 1
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+  });
+  
+  return allDays;
+}
+
+function calculatejours() {
+
+  var listePeriodes = JSON.parse(localStorage.getItem("dataPersonnel"));
+
+  const allDays = getAllDaysInPeriods(listePeriodes);
+
+  return allDays;
+
+}

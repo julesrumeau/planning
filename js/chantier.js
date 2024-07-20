@@ -199,10 +199,6 @@ function loadDataChantier() {
 
 
 
-document.addEventListener("DOMContentLoaded", function() {
-  loadDataPersonnel();
-});
-
 // Fonction pour ajouter une ligne au tableau
 function ajouterLigneVidePersonnel() {
 

@@ -47,6 +47,11 @@ canvas {
 );
 }
 
+.dots-background {
+  background-image: radial-gradient(circle, black 1px, transparent 1px);
+  background-size: 10px 10px; /* Taille des points et de l'espace entre eux */
+}
+
 .border {
   margin-top: 20px;
 }
@@ -62,6 +67,9 @@ canvas {
   margin-bottom: 10px; /* Ajoute une marge en bas de chaque élément de la liste */
 }
 
+td.taillefix {
+  width: 60px; /* Remplacez par la hauteur souhaitée */
+}
 
 input[type="text"],
 input[type="number"],
