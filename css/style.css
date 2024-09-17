@@ -62,7 +62,10 @@ canvas {
 .modal-dialog {
   max-width: 90%; 
 }
-
+.highlight-red {
+  background-color: #f8d7da; /* Rouge clair pour indiquer l'erreur */
+  border-color: #f5c6cb; /* Bordure rouge clair */
+}
 .list-group-item {
   margin-bottom: 10px; /* Ajoute une marge en bas de chaque élément de la liste */
 }

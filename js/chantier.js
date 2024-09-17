@@ -1,8 +1,10 @@
 document.addEventListener("DOMContentLoaded", function() {
+  let myChart = null;
   loadDataChantier();
   loadDataPersonnel();
   calculatedata();
 });
+window.todaykey = null;
 
 // Fonction pour ajouter une ligne de chantier au tableau
 function ajouterLigneChantier(nom = '', client = '', dateDebutAssemblage = '', nombreHeuresAtelier = '', estVendu = '', dateDebutLevage = '', nombreSemaineLevage = '', periodes = [], dep = '',moa = '',moe = '') {
@@ -45,7 +47,7 @@ function genererLignesPeriodes(periodes) {
   }
   return periodesHTML;
 }
-function ajouterPeriode(button) { // TODOdefault dd periode
+function ajouterPeriode(button) {
   // Trouver la ligne de chantier parente
   var chantierRow = button.closest("tr").previousElementSibling;
 
@@ -59,17 +61,34 @@ function ajouterPeriode(button) { // TODOdefault dd periode
     return;
   }
 
+  // Trouver toutes les lignes periode-row qui suivent la ligne de chantier
+  var periodeRows = [];
+  var nextRow = chantierRow.nextElementSibling;
+  while (nextRow && nextRow.classList.contains('periode-row')) {
+    periodeRows.push(nextRow);
+    nextRow = nextRow.nextElementSibling;
+  }
+
+  // Déterminer où insérer la nouvelle période
+  var insertAfterRow = periodeRows.length > 0 ? periodeRows[periodeRows.length - 1] : chantierRow;
+
+  // Si le tableau de périodes est vide, définir la date de début
+  var inputDateDebut = periodeRows.length === 0 ? chantierRow.querySelectorAll("td")[2].querySelector("input") : null;
+  var dateDebutChantier = inputDateDebut ? inputDateDebut.value : '';
+
   var newPeriode = `
     <tr class="periode-row">
-      <td style="padding-left: 60px;"><input type="date" class="form-control" placeholder="Date de début"></td>
+      <td style="padding-left: 60px;"><input type="date" class="form-control" ${periodeRows.length === 0 ? `value="${dateDebutChantier}"` : ''} placeholder="Date de début"></td>
       <td><input type="number" class="form-control" placeholder="Hommes max"></td>
       <td><button type="button" class="btn btn-danger btn-sm" onclick="supprimerPeriode(this)">Supprimer</button></td>
     </tr>
   `;
 
-  // Insérer la nouvelle période directement après la ligne de chantier
-  chantierRow.insertAdjacentHTML('afterend', newPeriode);
+  // Insérer la nouvelle période après la dernière ligne periode-row
+  insertAfterRow.insertAdjacentHTML('afterend', newPeriode);
 }
+
+
 
 
 // Fonction pour valider les données saisies dans le tableau et les sauvegarder
@@ -106,8 +125,9 @@ function saveDataChantier() {
     }
   }
 
-  console.log("Données saisies :", data);
   localStorage.setItem("dataChantier", JSON.stringify(data));
+  destroyChart()
+  draw()
 }
 
 function supprimerPeriode(button) {
@@ -243,13 +263,18 @@ function saveDataPersonnel() {
     data.push(rowData);
   }
 
-  console.log("Données saisies :", data);
   localStorage.setItem("dataPersonnel", JSON.stringify(data));
+  destroyChart()
+  draw()
 }
-
+function destroyChart() {
+  if (myChart) {
+      myChart.destroy(); // Supprimer le graphique
+      myChart = null; // Nettoyer la référence
+  }
+}
 function loadDataPersonnel() {
   var data = JSON.parse(localStorage.getItem("dataPersonnel"));
-  
   if (!data || data.length === 0) { // Si aucune donnée n'est disponible
     ajouterLigneVidePersonnel(); // Ajouter une ligne vide
   } else {
@@ -343,35 +368,411 @@ function calculatedata() {
 
   const allDays = getAllDaysInPeriods(listePeriodes);
 
-  console.log(allDays);
+
+  draw()
+}
+
+function stringToColor(str) {
+
+
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  var color = Math.floor(Math.abs((Math.sin(hash) * 10000) % 1 * 16777216)).toString(16);
+  return  '#' + Array(6 - color.length + 1).join('0') + color;
 
 }
 
+function stringToColor(str) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  var color = Math.floor(Math.abs((Math.sin(hash) * 10000) % 1 * 16777216)).toString(16);
+  return '#' + Array(6 - color.length + 1).join('0') + color;
+}
+
+// Fonction pour convertir une couleur hexadécimale en RGBA avec transparence
+function hexToRgba(hex, opacity = 0.5) {
+  // Supprimer le # s'il est présent
+  hex = hex.replace('#', '');
+
+  // Obtenir les valeurs R, G, B
+  let bigint = parseInt(hex, 16);
+  let r = (bigint >> 16) & 255;
+  let g = (bigint >> 8) & 255;
+  let b = bigint & 255;
+
+  // Retourner la couleur au format rgba
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+}
 
 //TODO on load et  save  on appel ça 
 
+// Function to generate weeks between two dates
+function getWeeksBetween(startDate, endDate) {
+  let weeks = [];
+  let currentDate = new Date(startDate);
+  personnelMax = []
 
-const ctx = document.getElementById('myChart');
 
-new Chart(ctx, {
-  type: 'bar',
-  data: {
-    labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-    datasets: [{
-      label: '# of Votes',
-      data: [12, 19, 3, 5, 2, 3],
-      borderWidth: 1
-    }]
-  },
-  options: {
-    scales: {
-      y: {
-        beginAtZero: true
+
+
+  
+  var dataPersonnel = JSON.parse(localStorage.getItem("dataPersonnel"));
+  var dataChantier = JSON.parse(localStorage.getItem("dataChantier"));
+  
+  listeChantier =  []
+  for (let i = 0; i < dataChantier.length; i++) {
+    const chantier = dataChantier[i];
+    listeChantier[i] = []
+  }
+
+  // Adjust to the Monday of the current week
+  let day = currentDate.getDay();
+  let diff = day <= 1 ? 1 - day : 8 - day;
+  currentDate.setDate(currentDate.getDate() + diff);
+  while (currentDate <= endDate) {
+
+    valuePersonnelMax = 0;
+    nbrHeure = null;
+    nbrHomme = null;
+    for (const personnel of dataPersonnel) {
+      if (personnel.semaineDebut == '' || personnel.semaineFin == '') {
+        continue;
       }
+
+      semaineDebut = new Date(personnel.semaineDebut)
+      semaineFin = new Date(personnel.semaineFin)
+      semaineFin.setDate(semaineFin.getDate() + 7)
+      if (semaineDebut <= currentDate && currentDate < semaineFin) {
+        valuePersonnelMax = personnel.nbrHeure * personnel.nbrHomme * 5
+        nbrHeure = personnel.nbrHeure * 5
+      }
+      continue;
+    };
+    var i = 0
+    for (const chantier of dataChantier) {
+      nbrHeureSemaine = 0
+      if (valuePersonnelMax != 0) {
+        for (const periode of chantier.periodes) { // TODO ça prend plusieur periode, la plus grande valide et toute les plus petites
+          dateDebutPeriode = new Date(periode.dateDebut)
+          if (dateDebutPeriode <= currentDate && chantier.nombreHeuresAtelier > 0) {
+            if (periode.hommesMax * nbrHeure > chantier.nombreHeuresAtelier) {
+              nbrHeureSemaine = chantier.nombreHeuresAtelier
+              chantier.nombreHeuresAtelier = 0
+            } else {
+              nbrHeureSemaine = periode.hommesMax * nbrHeure
+              chantier.nombreHeuresAtelier -= nbrHeureSemaine 
+            }
+          }
+          
+        }
+      }
+      listeChantier[i].push(nbrHeureSemaine)
+      i += 1
+    }
+
+
+
+    personnelMax.push(valuePersonnelMax)
+
+    let weekStart = new Date(currentDate);
+    let weekEnd = new Date(currentDate);
+    weekEnd.setDate(weekStart.getDate() + 6);
+
+    let startMonth = weekStart.getMonth();
+    let endMonth = weekEnd.getMonth();
+    let startYear = weekStart.getFullYear();
+    let endYear = weekEnd.getFullYear();
+
+    if (startYear !== endYear) {
+      const endOfYear = new Date(startYear, 11, 31);
+      weeks.push({
+        startMonth: startMonth,
+        startYear: startYear,
+        weekNumber: getISOWeekNumber(weekStart)
+      });
+
+      const startOfYear = new Date(endYear, 0, 1);
+      weeks.push({
+        startMonth: 0,
+        startYear: endYear,
+        weekNumber: getISOWeekNumber(startOfYear)
+      });
+    } else {
+      weeks.push({
+        startMonth: startMonth,
+        startYear: startYear,
+        weekNumber: getISOWeekNumber(weekStart)
+      });
+    }
+
+    currentDate.setDate(currentDate.getDate() + 7);
+  }
+
+  chantiers = []
+  for (let i = 0; i < dataChantier.length; i++) {
+    const chantier = dataChantier[i];
+    chantiers[i] = {
+                nom: chantier.nom,
+                data: listeChantier[i],
+                estVendu: chantier.estVendu,
+              }
+  }
+
+
+  
+  return weeks;
+}
+
+// Fonction pour obtenir le nom du mois à partir du numéro de mois (0-11)
+function getMonthName(monthNumber) {
+  const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+  return months[monthNumber];
+}
+
+
+// Function to calculate the date range from today
+function calculateDateRange(date) {
+  if (!(date instanceof Date)) {
+    date = new Date(date);
+  }
+
+  let startMonth = date.getMonth() - 2;
+  let endMonth = date.getMonth() + 10;
+  let startYear = date.getFullYear();
+  let endYear = date.getFullYear();
+
+  if (startMonth < 0) {
+    startMonth += 12;
+    startYear--;
+  }
+  if (endMonth >= 12) {
+    endMonth -= 12;
+    endYear++;
+  }
+
+  let twoMonthsBefore = new Date(startYear, startMonth, 1);
+  let tenMonthsAfter = new Date(endYear, endMonth + 1, 0);
+
+  return {
+    startDate: twoMonthsBefore,  // Start of the date range
+    endDate: tenMonthsAfter      // End of the date range
+  };
+}
+
+// Function to get ISO week number
+function getISOWeekNumber(date) {
+  const d = new Date(date.valueOf());
+  const dayNum = (date.getDay() + 6) % 7;
+  d.setDate(d.getDate() - dayNum + 3);
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+  const weekNumber = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return weekNumber;
+}
+function getMonth () {
+  
+
+  const today = new Date();
+  const dateRange = calculateDateRange(today);
+  const { startDate, endDate } = dateRange;
+
+  var weeks = getWeeksBetween(startDate, endDate);
+
+  // Créer un objet pour regrouper les semaines par mois
+  let weeksByMonth = {};
+
+  window.semaineDebutGlobal = weeks[0]["startYear"] + "-" + weeks[0]["weekNumber"]
+  window.nbrsemaine = weeks.length
+
+  // Organiser les semaines par mois dans l'objet weeksByMonth
+  weeks.forEach(week => {
+    const key = `${week.startYear}-${week.startMonth}`;
+    if (!weeksByMonth[key]) {
+      weeksByMonth[key] = [];
+    }
+    weeksByMonth[key].push(week);
+  });
+
+  allmonth = [] 
+  allPosition = []
+  for (const monthKey in weeksByMonth) {
+    if (weeksByMonth.hasOwnProperty(monthKey)) {
+      const [year, month] = monthKey.split('-');
+      var colspan = weeksByMonth[monthKey].length;
+
+      const lastWeek = weeksByMonth[monthKey][weeksByMonth[monthKey].length - 1];
+
+      if (month == 11 && lastWeek.weekNumber == 1) {
+        colspan -= 1;
+      }
+      allPosition.push(colspan);
+      allmonth.push(getMonthName(parseInt(month)));
     }
   }
-});
+  allsemaine = [] 
+  for (const monthKey in weeksByMonth) {
+    if (weeksByMonth.hasOwnProperty(monthKey)) {
+      const monthWeeks = weeksByMonth[monthKey];
+      monthWeeks.forEach(week => {
+        if (week.weekNumber == 1 && week.startMonth == 11) {
+          return;
+        }
+        allsemaine.push(week.weekNumber);
+      });
+    }
+  }
+  allPosition = allPosition.map((sum => value => sum += value)(0));
 
+  return [allmonth, allsemaine, allPosition];
+
+
+}
+
+function createDiagonalPattern(backgroundColor = 'red') {
+  // Create a 10x10 px canvas for the pattern's base shape
+  let shape = document.createElement('canvas');
+  shape.width = 10;
+  shape.height = 10;
+
+  // Get the context for drawing
+  let c = shape.getContext('2d');
+
+  // Draw background color (fill the entire canvas with a solid color)
+  c.fillStyle = backgroundColor;
+  c.fillRect(0, 0, shape.width, shape.height);
+
+  // Draw hatching lines on top of the background
+  c.strokeStyle = 'black';
+  c.lineWidth = 2;
+
+  // Draw the first line of the shape (diagonal)
+  c.beginPath();
+  c.moveTo(2, 0);
+  c.lineTo(10, 8);
+  c.stroke();
+
+  // Draw the second line of the shape (diagonal)
+  c.beginPath();
+  c.moveTo(0, 8);
+  c.lineTo(2, 10);
+  c.stroke();
+
+  // Create the pattern from the shape
+  return c.createPattern(shape, 'repeat');
+}
+
+function draw() {
+  const ctx = document.getElementById('myChart').getContext('2d');
+  
+  res  = getMonth();
+  //liste des 12 mois de l'année
+  allmonth = res[0];
+  //liste des 56 semaine de l'année
+  allsemaine = res[1];
+  allPosition = res[2];
+  allPosition[allPosition.length -1] = 55
+
+
+  console.log(chantiers)
+  // Préparation des datasets
+  chantiers.forEach(chantier => {
+    chantier.label = chantier.nom;
+    chantier.data = chantier.data;
+    // chantier.backgroundColor = hexToRgba(stringToColor(chantier.nom), 0.5); // Couleur avec transparence
+    chantier.backgroundColor = chantier.estVendu ? stringToColor(chantier.nom) : createDiagonalPattern(stringToColor(chantier.nom)); // Couleur avec transparence
+    chantier.borderWidth = 1;
+    chantier.type = 'bar';
+    chantier.order = 2;
+  });
+  
+  
+  
+  const liste490 = Array(personnelMax.length).fill(490);
+  chantiers.push(
+    {
+              label: 'Nbr homme max',
+              data: personnelMax,  // Valeurs maximales pour la ligne de suivi
+              type: 'line',
+              borderColor: 'green',
+              borderWidth: 2,
+              fill: false,
+              pointRadius: 0,
+              order: 1
+            },
+    // {
+    //       label: '35 heures à 14',
+    //       data: liste490,  // Valeurs maximales pour la ligne de suivi
+    //       type: 'line',
+    //       borderColor: 'red',
+    //       borderWidth: 2,
+    //       fill: false,
+    //       pointRadius: 0,
+    //       borderDash: [5, 5],
+    //       order: 1
+    //     }
+  )
+  
+
+  // Plugin pour ajouter des labels au-dessus (mois)
+  const monthPlugin = {
+    id: 'monthPlugin',
+    beforeDraw: (chart) => {
+        const {ctx, scales: {x, y}} = chart;
+
+        ctx.save();
+        ctx.font = 'bold 12px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'black';
+
+        // Définir où positionner les mois (au-dessus des semaines)
+        let currentMonth = 0;
+
+        // Dessiner les labels des mois au-dessus des semaines
+        allPosition.forEach((position, index) => {
+            const start = index > 0 ? allPosition[index - 1] + 1 : 0;
+            const end = position;
+            const xPosition = (x.getPixelForTick(start) + x.getPixelForTick(end)) / 2;
+            
+            ctx.fillText(allmonth[currentMonth], xPosition, y.top +10);
+            currentMonth++;
+        });
+
+        ctx.restore();
+    }
+  };
+  myChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+          labels: allsemaine,  // Numéro des semaines
+          datasets: chantiers
+      },
+      options: {
+          plugins: {
+              title: {
+                  display: true,
+                  text: 'PLAN DE CHARGE ASSEMBLAGE (Semaines et Mois)'
+              }
+          },
+          scales: {
+            x: {
+                stacked: true,  // Empiler uniquement les barres
+                beginAtZero: true,
+            },
+            y: {
+                stacked: true,  // Empiler uniquement les barres
+                beginAtZero: true,
+            },
+          },
+          responsive: true
+      },
+      plugins: [monthPlugin]  // Utilisation du plugin pour les mois
+  });
+}
 
 
 
